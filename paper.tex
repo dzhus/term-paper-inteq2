@@ -110,7 +110,6 @@ pdfauthor=Dmitry Dzhus]{hyperref}
 \end{equation}
 где
 \begin{equation}
-  \label{eq:discrete-scalmult}
   \scalmult{f, g} = \sum_{m=1}^n{f(\tau_m)\mul g(\tau_m)}.
 \end{equation}
 
@@ -133,7 +132,7 @@ pdfauthor=Dmitry Dzhus]{hyperref}
   \end{cases}.
 \end{equation}
 
-С учётом \eqref{eq:cheb-coeffs} и \eqref{eq:cheb-norm} формулы
+С учётом \eqref{eq:cheb-coeffs} и \eqref{eq:cheb-norm} формула
 \eqref{eq:cheb-sum} примет вид:
 \begin{equation}
   \label{eq:cheb-interpol}
@@ -147,7 +146,7 @@ pdfauthor=Dmitry Dzhus]{hyperref}
 \subsection{Дискретизация исходного уравнения}
 Введём на $[a; b]$ равномерную сетку $S_n = \langle a = s_1, \dotsc,
 s_n = b \rangle$. Подставим разложение \eqref{eq:cheb-interpol} в
-\eqref{eq:ieqgen} и запишем уравнение для каждого $s_i$:
+\eqref{eq:ieqgen} и запишем уравнение для каждого $s_i$:
 \begin{equation}
   \label{eq:psi-matrix}
   \intl_a^b
@@ -161,11 +160,11 @@ s_n = b \rangle$. Подставим разложение \eqref{eq:cheb-interpo
 Переупорядочим знаки суммирования и интегрирования:
 \begin{equation}
   \label{eq:psi-theta}
-  \sum_{j=1}^n \left[
+  \sum_{j=1}^n
     \sum_{k=1}^n \underbrace{
       \intl_a^b e^{-s_i\tau}\mul T_k(\tau)\,d\tau}_{\psi_{ik}}
     \mul \underbrace{\vphantom{\intl_a^b} T_k(\tau_j) \mul \frac{1}{r_k}}_{\theta_{kj}}
-  \mul x(\tau_j)\right] = z(s_i),
+  \mul x(\tau_j) = z(s_i),
 \end{equation}
 с учётом введённых обозначений:
 \begin{equation}
