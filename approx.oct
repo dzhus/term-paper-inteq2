@@ -1,0 +1,57 @@
+function Cheb = Cheb(a, b, n, x)
+  Cheb = cos((n - 1) * acos((2 * x - (b + a)) / (b - a)));
+endfunction
+
+%% $\sum_m{f(x_m)g(x_m)}$
+function R = discrete_product(f, g, points)
+  R = 0;
+  for i = 1:length(points)
+    R += f(points(i)) * g(points(i));
+  endfor
+endfunction
+
+function R = Cheb_norm (i, n)
+  if (i == 1)
+    R = n;
+  else
+    R = n / 2;
+  endif
+endfunction
+
+%% Roots of Chebyshev polynomial of $n$-th degree over $[a;b]$.
+function pts = Cheb_roots(a, b, n)
+  m = 1:n;
+  pts = (a + b) / 2 + (b - a) / 2 * cos(pi * (2 * m - 1) / (2 * n));
+endfunction
+
+function c = Cheb_coeffs(f, a, b, n)
+  c = [];
+  for i = 1:n
+    c(i) = discrete_product(@(x) Cheb(a, b, i, x), f, Cheb_roots(a, b, n)) / Cheb_norm(i, n);
+  endfor
+endfunction
+
+%% Value(s) of function $f$ approximated by Chebyshev polynomials over
+%% range $[a;b]$ to $n$ degree. $x$ is either a single value or vector.
+function R = Cheb_approx(f, x, a, b, n)
+  c = Cheb_coeffs(f, a, b, n);
+  if !isvector(x)
+    x = [x]
+  endif
+  R = zeros(1, length(x));
+  for m = 1:length(x)
+    for i = 1:n
+      R(m) += c(i) * Cheb(a, b, i, x(m));
+    endfor
+  endfor
+endfunction
+
+function c = check_condition(f, a, b, n)
+  pts = Cheb_roots(a, b, n);
+  c = [];
+  for i = 1:n
+    t = discrete_product(@(x) Cheb(a, b, i, x), f, pts);
+    s = discrete_product(@(x) Cheb(a, b, i, x), @(x) Cheb_approx(f, x, a, b, i), pts);
+    c(i) = abs(t-s)
+  endfor
+endfunction
