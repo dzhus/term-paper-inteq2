@@ -46,12 +46,18 @@ function R = Cheb_approx(f, x, a, b, n)
   endfor
 endfunction
 
-function c = check_condition(f, a, b, n)
+%% Absolute error for satisfying linear interpolation condition of
+%% Chebyshev approximation for $f$
+function c = interpolation_error(f, a, b, n)
   pts = Cheb_roots(a, b, n);
-  c = [];
-  for i = 1:n
-    t = discrete_product(@(x) Cheb(a, b, i, x), f, pts);
-    s = discrete_product(@(x) Cheb(a, b, i, x), @(x) Cheb_approx(f, x, a, b, i), pts);
-    c(i) = abs(t-s)
-  endfor
+  P = @(x) Cheb(a, b, n, x);
+  t = discrete_product(P, f, pts);
+  s = discrete_product(P, @(x) Cheb_approx(f, x, a, b, n), pts);
+  c = abs(t-s);
 endfunction
+
+%!assert(0, interpolation_error(@sin, -1, 1, 5), 1e-10)
+%!assert(0, interpolation_error(@(x) x**3+sin(5*x)+log(x), 1, 5, 10), 1e-10)
+%!assert(0, interpolation_error(@sign, -10, 10, 10), 1e-10)
+
+test approx.oct
