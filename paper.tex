@@ -37,6 +37,7 @@
 \newcommand{\norm}[1]{\left \lVert{#1}\right \rVert}
 \newcommand{\set}[1]{\mathbb{#1}}
 \newcommand{\mul}{\cdot}
+\newcommand{\figref}[1]{рис. \ref{#1}}
 
 \usepackage[unicode,
 pdftex, colorlinks, linkcolor=black, citecolor=black,
@@ -61,135 +62,132 @@ pdfauthor=Dmitry Dzhus]{hyperref}
 \tableofcontents
 
 \clearpage
-\section{Предмет работы}
-\label{sec:problem}
-В настоящей курсовой работе рассматриваются методы решения
-симметричного неоднородного интегрального уравнения Фредгольма второго
-рода вида
-\begin{equation}
-  \label{eq:ieqgen}
-  \intl_a^b {e^{-s\tau}x(\tau)\,d\tau} = z(s),\, s\in [a;b]
-\end{equation}
-где $a = 0, b = 2$.
 
-К использованию предлагается модельное решение вида
+\input{solution.oct.tex}
 
+\subsection{Устойчивость}
+
+Внесём в правую часть уравнения малое возмущение порядка $10^{-2}$,
+рассмотрев вместо \eqref{eq:discrete} следующую систему:
 \begin{equation}
-  \label{eq:model-sol}
-  x_0(\tau) = 100 \mul \sin^2\left(\frac{\pi}{2}\tau\right)
+  \label{eq:discrete-dist}
+  B\mul\vec{x}=\vec{\tilde{z}}.
 \end{equation}
 
-\begin{figure}[!htb]
+Решение данной системы $\vec{\tilde{x}}$ (\figref{fig:raw-dist})
+демонстрирует её неусточивость к малым возмущениям.
+
+\begin{figure}[htb]
   \centering
   \begin{tikzpicture}
-    \begin{axis}[
-      xtick={-1, 0, 1},
-      ytick = {0, 100},
-      color=black]
-      \addplot plot[mark=*,smooth,domain=-1:1,samples=20] function{100*sin(pi/2*(x-1))**2};
+    \begin{axis}
+      \input{raw-dist-sol-plot.tex}
     \end{axis}
   \end{tikzpicture}
-  \caption{Модельное решение \eqref{eq:model-sol}}
-  \label{fig:model-sol}
+  \caption{Решение \eqref{eq:discrete} после внесения возмущения}
+  \label{fig:raw-dist}
 \end{figure}
 
-\section{Решение}
+\subsection{Регуляризация}
 
-\subsection{Приближение полиномами Чебышева}
-
-Разложим искомую функцию $x(\tau)$ по многочленам Чебышева до $n$-го члена:
+Рассмотрим вместо \eqref{eq:discrete-dist} следующую задачу:
 \begin{equation}
-  \label{eq:cheb-sum}
-  x_A(\tau) = \sum_{k=1}^n{c_k T_k(\tau)}.
+  \label{eq:discrete-reg}
+  \left(\alpha H + B^TB \right) \mul \vec{x} = B^T\mul \vec{\tilde{z}},
 \end{equation}
-
-Коэффициенты $c_k$ вычисляются по формуле:
+где $H$ — матрица стабилизирующего функционала, а $\alpha$ — параметр
+регуляризации. Обозначая решение новой системы как
+$\vec{\bar{x}}(\alpha)$, зададимся задачей минимизации функционала
 \begin{equation}
-  \label{eq:cheb-coeffs}
-  c_k = \frac{\scalmult{T_k, x}}{\scalmult{T_k, T_k}},
-\end{equation}
-где
-\begin{equation}
-  \scalmult{f, g} = \sum_{m=1}^n{f(\tau_m)\mul g(\tau_m)}.
+  \Omega(\alpha) = \norm{\vec{x_0} - \vec{\bar{x}}(\alpha)}.
 \end{equation}
 
-При этом известно (см. \cite{bahvalov01}, \cite{amosov94}), что для
-интерполяции с наименьшей погрешностью на отрезке $[a;b]$ узлы $\tau_m$
-необходимо выбирать следующим образом:
-\begin{equation}
-  \label{eq:cheb-roots}
-  \tau_m = \frac{a+b}{2} +
-  \frac{b-a}{2}\mul\cos\left(\frac{\pi(2m-1)}{2n}\right),\quad m = 1,\ldots,n.
-\end{equation}
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}
+      \input{w-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Значения функционала $\Omega(\alpha)$}
+\end{figure}
 
-При выборе узлов интерполяции как в \eqref{eq:cheb-roots},
-\begin{equation}
-  \label{eq:cheb-norm}
-  \scalmult{T_k, T_k} = r_k =
-  \begin{cases}
-    n,&k = 1\\
-    n/2,&k>1
-  \end{cases}.
-\end{equation}
+Находя $\alpha$: \input{alpha-val.out}, вычислим решение
+регуляризованной системы \eqref{eq:discrete-reg}. Оно сопоставлено с
+модельным решением $x_0$ на \figref{fig:r1}.
 
-С учётом \eqref{eq:cheb-coeffs} и \eqref{eq:cheb-norm} формула
-\eqref{eq:cheb-sum} примет вид:
-\begin{equation}
-  \label{eq:cheb-interpol}
-  x_A(\tau) = \sum_{k=1}^n \left[
-    \frac{\sum_{j=1}^n 
-      x(\tau_j)\mul T_k(\tau_j)}{r_k}
-    \mul T_k(\tau)
-  \right]
-\end{equation}
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}
+      \input{model-plot.tex}
+      \input{r1-sol-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Модельное и регуляризационное решение}
+  \label{fig:r1}
+\end{figure}
 
-\subsection{Дискретизация исходного уравнения}
-Введём на $[a; b]$ равномерную сетку $S_n = \langle a = s_1, \dotsc,
-s_n = b \rangle$. Подставим разложение \eqref{eq:cheb-interpol} в
-\eqref{eq:ieqgen} и запишем уравнение для каждого $s_i$:
-\begin{equation}
-  \label{eq:psi-matrix}
-  \intl_a^b
-  e^{-s_i\tau}
-  \sum_{k=1}^n\sum_{j=1}^n \left[
-    x(\tau_j)\mul T_k(\tau_j) \mul \frac{1}{r_k} \mul T_k(\tau)
-  \right]\,d\tau = 
-  z(s_i).
-\end{equation}
+Система \eqref{eq:discrete-reg} при найденном значении $\alpha$
+обладает устойчивостью: как продемонстрировано на
+\figref{fig:r1-dist}, добавление к вектору $\vec{\tilde{z}}$ малого
+возмущение уже не приводит к картине, виденной ранее
+(\figref{fig:raw-dist}).
 
-Переупорядочим знаки суммирования и интегрирования:
-\begin{equation}
-  \label{eq:psi-theta}
-  \sum_{j=1}^n
-    \sum_{k=1}^n \underbrace{
-      \intl_a^b e^{-s_i\tau}\mul T_k(\tau)\,d\tau}_{\psi_{ik}}
-    \mul \underbrace{\vphantom{\intl_a^b} T_k(\tau_j) \mul \frac{1}{r_k}}_{\theta_{kj}}
-  \mul x(\tau_j) = z(s_i),
-\end{equation}
-с учётом введённых обозначений:
-\begin{equation}
-  \label{eq:b-coeff}
-  \sum_{j=1}^n{ 
-    \underbrace{\sum_{k=1}^n \psi_{ik} \mul \theta_{kj}}_{b_{ij}} \mul
-    x(\tau_j)} = z(s_i).
-\end{equation}
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}
+      \input{r1-sol-plot.tex}
+      \input{r1-sol-dist-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Стабильность регуляризационного решения $\vec{\bar{x}}(\alpha)$}
+  \label{fig:r1-dist}
+\end{figure}
 
-Определим матрицы $\Psi = (\psi_{ik})_n^n$ и $\Theta =
-(\theta_{kj})_n^n$, после чего можно ввести матрицу 
+Рассматривая для той же системы \eqref{eq:discrete-reg} функционал
 \begin{equation}
-  \label{eq:b-matrix}
-  B = (b_{ij})_n^n = \Psi\mul\Theta.
+  \Phi(\beta) = \norm{B\mul\vec{\bar{x}}(\beta) - \vec{\tilde{z}}},
 \end{equation}
+определим $\beta$: \input{beta-val.out}.
 
-Из \eqref{eq:b-coeff} следует:
-\begin{equation*}
-  \sum_{j=1}^nb_{ij}x(\tau_j) = z(s_i),
-\end{equation*}
-что с учётом определения \eqref{eq:b-matrix} принимает вид:
-\begin{equation}
-  \label{eq:discrete}
-  B\mul\vec{x}=\vec{z}.
-\end{equation}
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}
+      \input{u-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Значения функционала $\Phi(\beta)$}
+\end{figure}
+
+Решения $\vec{\bar{x}}(\alpha)$ и $\vec{\bar{x}}(\beta)$ представлены
+на \figref{fig:r1-r2}.
+
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}
+      \input{r2-sol-plot.tex}
+      \input{r2-sol-dist-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Стабильность регуляризационного решения $\vec{\bar{x}}(\beta)$}
+  \label{fig:r2-dist}
+\end{figure}
+
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}[scale=1.5]
+    \begin{axis}
+      \input{r1-sol-plot.tex}
+      \input{r2-sol-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Сравнение регуляризационных решений}
+  \label{fig:r1-r2}
+\end{figure}
 
 \clearpage
 \section{Информация о документе}

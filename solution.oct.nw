@@ -1,0 +1,273 @@
+% -*- mode: noweb; noweb-code-mode: octave-mode -*-
+
+\section{Предмет работы}
+\label{sec:problem}
+В настоящей курсовой работе рассматриваются методы решения
+симметричного неоднородного интегрального уравнения Фредгольма второго
+рода вида
+\begin{equation}
+  \label{eq:ieqgen}
+  \intl_a^b {e^{-s\tau}x(\tau)\,d\tau} = z(s),\, s\in [a;b]
+\end{equation}
+
+Изучение интегрального уравнения будем проводить по следующей схеме:
+<<*>>=
+<<исходные данные>>
+<<модельное решение>>
+<<дискретизация>>
+@ 
+
+\subsection{Исходные данные}
+
+Рассматривается отрезок интегрирования $a = 0, b = 2$.
+<<исходные данные>>=
+a = 0
+b = 2
+@ 
+
+К использованию предлагается модельное решение
+(\figref{fig:model-sol}) вида
+\begin{equation}
+  \label{eq:model-sol}
+  x_0(\tau) = 100 \mul \sin^2\left(\frac{\pi}{2}\tau\right).
+\end{equation}
+<<модельное решение>>=
+function M = M(x)
+  M = 100 * sin(pi / 2 * x) .^ 2;
+endfunction
+@ 
+
+\begin{figure}[!htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xtick={-1, 0, 1},
+      ytick = {0, 100},
+      color=black]
+      \addplot plot[mark=*,smooth,domain=-1:1,samples=20] function{100*sin(pi/2*(x-1))**2};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Модельное решение \eqref{eq:model-sol}}
+  \label{fig:model-sol}
+\end{figure}
+
+\section{Решение}
+
+\subsection{Приближение полиномами Чебышева}
+
+Разложим искомую функцию $x(\tau)$ по многочленам Чебышева до $n$-го члена:
+\begin{equation}
+  \label{eq:cheb-sum}
+  x_A(\tau) = \sum_{k=1}^n{c_k T_k(\tau)}.
+\end{equation}
+
+Коэффициенты $c_k$ вычисляются по формуле:
+\begin{equation}
+  \label{eq:cheb-coeffs}
+  c_k = \frac{\scalmult{T_k, x}}{\scalmult{T_k, T_k}},
+\end{equation}
+где
+\begin{equation}
+  \scalmult{f, g} = \sum_{m=1}^n{f(\tau_m)\mul g(\tau_m)}.
+\end{equation}
+
+При этом известно (см. \cite{bahvalov01}, \cite{amosov94}), что для
+интерполяции с наименьшей погрешностью на отрезке $[a;b]$ узлы $\tau_m$
+необходимо выбирать следующим образом:
+\begin{equation}
+  \label{eq:cheb-roots}
+  \tau_m = \frac{a+b}{2} +
+  \frac{b-a}{2}\mul\cos\left(\frac{\pi(2m-1)}{2n}\right),\quad m = 1,\dotsc,n.
+\end{equation}
+
+При выборе узлов интерполяции как в \eqref{eq:cheb-roots},
+\begin{equation}
+  \label{eq:cheb-norm}
+  \scalmult{T_k, T_k} = r_k =
+  \begin{cases}
+    n,&k = 1,\\
+    n/2,&k>1.
+  \end{cases}
+\end{equation}
+
+С учётом \eqref{eq:cheb-coeffs} и \eqref{eq:cheb-norm} формула
+\eqref{eq:cheb-sum} примет вид:
+\begin{equation}
+  \label{eq:cheb-interpol}
+  x_A(\tau) = \sum_{k=1}^n \left[
+    \frac{\sum_{j=1}^n 
+      x(\tau_j)\mul T_k(\tau_j)}{r_k}
+    \mul T_k(\tau)
+  \right]
+\end{equation}
+
+\subsection{Дискретизация исходного уравнения}
+<<дискретизация>>=
+<<генерация сеток>>
+<<построение матриц $\Psi, \Theta$ и $B$>>
+<<построение правой части>>
+@ 
+
+Введём на $[a; b]$ равномерную сетку $S_n = \langle a = s_1, \dotsc,
+s_n = b \rangle$ и сетку $\langle \tau_1, \dotsc, \tau_n \rangle$ согласно
+\eqref{eq:cheb-roots}. Выберем $n=20$.
+<<генерация сеток>>=
+global n = 20
+h = (b - a) / (n - 1)
+s = a:h:b;
+tau = Cheb_roots(a, b, n);
+@ 
+
+Подставим разложение \eqref{eq:cheb-interpol} в
+\eqref{eq:ieqgen} и запишем уравнение для каждого $s_i$:
+\begin{equation}
+  \label{eq:psi-matrix}
+  \intl_a^b
+  e^{-s_i\tau}
+  \sum_{k=1}^n\sum_{j=1}^n \left[
+    x(\tau_j)\mul T_k(\tau_j) \mul \frac{1}{r_k} \mul T_k(\tau)
+  \right]\,d\tau = 
+  z(s_i).
+\end{equation}
+
+Переупорядочим знаки суммирования и интегрирования:
+\begin{equation}
+  \label{eq:psi-theta}
+  \sum_{j=1}^n
+    \sum_{k=1}^n \underbrace{
+      \intl_a^b e^{-s_i\tau}\mul T_k(\tau)\,d\tau}_{\psi_{ik}}
+    \mul \underbrace{\vphantom{\intl_a^b} T_k(\tau_j) \mul \frac{1}{r_k}}_{\theta_{kj}}
+  \mul x(\tau_j) = z(s_i),
+\end{equation}
+с учётом введённых обозначений:
+\begin{equation}
+  \label{eq:b-coeff}
+  \sum_{j=1}^n{ 
+    \underbrace{\sum_{k=1}^n \psi_{ik} \mul \theta_{kj}}_{b_{ij}} \mul
+    x(\tau_j)} = z(s_i).
+\end{equation}
+
+Определим матрицы $\Psi = (\psi_{ik})_n^n$ и $\Theta =
+(\theta_{kj})_n^n$, после чего можно ввести матрицу 
+\begin{equation}
+  \label{eq:b-matrix}
+  B = (b_{ij})_n^n = \Psi\mul\Theta.
+\end{equation}
+<<построение матриц $\Psi, \Theta$ и $B$>>=
+Psi = zeros(n);
+for i = 1:n
+  for k = 1:n
+    Psi(i, k) = quad(@(x) exp(-s(i) * x) * Cheb(a, b, k, x), a, b);
+  endfor
+endfor
+
+Theta = zeros(n);
+for k = 1:n
+  for j = 1:n
+    Theta(k, j) = Cheb(a, b, k, tau(j)) / Cheb_norm(k, n);
+  endfor
+endfor
+
+global B = Psi * Theta
+@
+
+Из \eqref{eq:b-coeff} следует:
+\begin{equation*}
+  \sum_{j=1}^nb_{ij}x(\tau_j) = z(s_i),
+\end{equation*}
+что с учётом определения \eqref{eq:b-matrix} принимает вид:
+\begin{equation}
+  \label{eq:discrete}
+  B\mul\vec{x}=\vec{z}.
+\end{equation}
+
+Решение системы \eqref{eq:discrete} позволяет определить значения
+искомой функции $x$ в точках $\tau_m$.
+
+Найдём правую часть, подставив в уравнение модельное решение.
+<<построение правой части>>=
+global x_m = M(tau)';
+z = B * x_m;
+@ 
+
+<<дальнейшие игрища>>=
+raw_x = B \ z;
+# Вносим погрешность
+rand("state", 2009)
+global z_d = z + (rand(n, 1) - 0.5) * 0.1;
+# Разбалтывается жуть как
+x_d = B \ z_d;
+
+# Изменение правой части должно быть мало
+z - B * x_d;
+
+# Регуляризация, часть 1
+function x = stabilized_solution(B, z, H, alpha)
+  x = (H * alpha + B' * B) \ (B' * z);
+endfunction
+
+function c = cnorm(u, v)
+  c = max(abs(u - v));
+endfunction
+
+function w = w(alpha)
+  global B z_d x_m n
+  x = stabilized_solution(B, z_d, eye(n), alpha);
+  w = sum(abs(x - x_m));
+endfunction
+
+alphas = 1e-8:5e-7:1e-5;
+w_points = zeros(length(alphas),1);
+for i=1:length(alphas)
+  w_points(i) = w(alphas(i));
+endfor
+
+# Часть 2
+function u = u(alpha)
+  global B z_d x_m n
+  x = stabilized_solution(B, z_d, eye(n), alpha);
+  u = sum(abs(B*x - z_d));
+endfunction
+
+u_points = zeros(length(alphas),1);
+for i=1:length(alphas)
+  u_points(i) = u(alphas(i));
+endfor
+
+
+# минимизируем
+alpha = sqp(1e-2, @w, [], [], 0, 1)
+beta = sqp(1e-2, @u, [], [], alpha / 10, 1)
+
+# проверяем на устойчивость
+x_r1 = stabilized_solution(B, z_d, eye(n), alpha);
+x_r1_dist = stabilized_solution(B, z_d + (rand(n, 1) - 0.5) * 0.1, eye(n), alpha);
+
+x_r2 = stabilized_solution(B, z_d, eye(n), beta);
+x_r2_dist = stabilized_solution(B, z_d + (rand(n, 1) - 0.5) * 0.1, eye(n), beta);
+
+# заметим, что beta < alpha
+
+# Запись результатов
+model_points = [tau; x_m']';
+x_points = [tau; raw_x']';
+x_d_points = [tau; x_d']';
+x_r1 = [tau; x_r1']';
+x_r1_dist = [tau; x_r1_dist']';
+x_r2 = [tau; x_r2']';
+x_r2_dist = [tau; x_r2_dist']';
+
+w_points = [alphas; w_points']';
+u_points = [alphas; u_points']';
+save ("model.out", "model_points");
+save ("raw-sol.out", "x_points");
+save ("raw-dist-sol.out", "x_d_points");
+save ("r1-sol.out", "x_r1");
+save ("r1-sol-dist.out", "x_r1_dist");
+save ("r2-sol.out", "x_r2");
+save ("r2-sol-dist.out", "x_r2_dist");
+save ("w.out", "w_points");
+save ("u.out", "u_points");
+save ("-ascii", "alpha.out", "alpha");
+save ("-ascii", "beta.out", "beta");
+@ 
