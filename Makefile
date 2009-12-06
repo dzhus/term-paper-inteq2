@@ -12,10 +12,10 @@ include ${DOCNAME}-deps.mk
 
 .PRECIOUS: %.out
 
-${DOCNAME}-deps.mk: ${DOCNAME}.tex ${INCLUDES}
+${DOCNAME}-deps.mk: ${DOCNAME}.tex solution.tex
 	texdepend -o $@ -print=if $<
 
-${DOCNAME}.aux: ${INCLUDES} ${DOCNAME}.tex ${DOCNAME}.bib
+${DOCNAME}.aux: ${DOCNAME}.tex ${DOCNAME}.bib ${INCLUDES}
 	${PDFLATEX} ${DOCNAME}
 	${BIBTEX} ${DOCNAME}
 
@@ -25,20 +25,20 @@ ${DOCNAME}.pdf: ${DOCNAME}.aux
 
 doc: ${DOCNAME}.pdf
 
-%.out: solution.oct
+solution.tex: solution.nw
+	${NOWEAVE} $< > $@
 
-%-plot.tex: %.out solution.oct
-	echo "\addplot file{$<};" > $@
-
-%-val.out.tex: %.out solution.oct
-	cp $< $@
-
-solution.oct: solution.oct.nw
+solution.oct: solution.nw
 	${NOTANGLE} $< > $@
 	${OCTAVE} $@
 
-solution.oct.tex: solution.oct.nw
-	${NOWEAVE} $< > $@
+%.out: solution.oct
+
+%-plot.tex: %.out
+	echo "\addplot file{$<};" > $@
+
+%-val.out.tex: %.out
+	cp $< $@
 
 clean:
 	@rm -frv `hg status --unknown --no-status`

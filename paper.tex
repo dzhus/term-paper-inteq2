@@ -45,7 +45,7 @@ pdfauthor=Dmitry Dzhus]{hyperref}
 
 % literate programming tool
 \usepackage{noweb}
-\noweboptions{nomargintag}
+\noweboptions{nomargintag,smallcode}
 
 \begin{document}
 
@@ -63,131 +63,7 @@ pdfauthor=Dmitry Dzhus]{hyperref}
 
 \clearpage
 
-\input{solution.oct.tex}
-
-\subsection{Устойчивость}
-
-Внесём в правую часть уравнения малое возмущение порядка $10^{-2}$,
-рассмотрев вместо \eqref{eq:discrete} следующую систему:
-\begin{equation}
-  \label{eq:discrete-dist}
-  B\mul\vec{x}=\vec{\tilde{z}}.
-\end{equation}
-
-Решение данной системы $\vec{\tilde{x}}$ (\figref{fig:raw-dist})
-демонстрирует её неусточивость к малым возмущениям.
-
-\begin{figure}[htb]
-  \centering
-  \begin{tikzpicture}
-    \begin{axis}
-      \input{raw-dist-sol-plot.tex}
-    \end{axis}
-  \end{tikzpicture}
-  \caption{Решение \eqref{eq:discrete} после внесения возмущения}
-  \label{fig:raw-dist}
-\end{figure}
-
-\subsection{Регуляризация}
-
-Рассмотрим вместо \eqref{eq:discrete-dist} следующую задачу:
-\begin{equation}
-  \label{eq:discrete-reg}
-  \left(\alpha H + B^TB \right) \mul \vec{x} = B^T\mul \vec{\tilde{z}},
-\end{equation}
-где $H$ — матрица стабилизирующего функционала, а $\alpha$ — параметр
-регуляризации. Обозначая решение новой системы как
-$\vec{\bar{x}}(\alpha)$, зададимся задачей минимизации функционала
-\begin{equation}
-  \Omega(\alpha) = \norm{\vec{x_0} - \vec{\bar{x}}(\alpha)}.
-\end{equation}
-
-\begin{figure}[htb]
-  \centering
-  \begin{tikzpicture}
-    \begin{axis}
-      \input{w-plot.tex}
-    \end{axis}
-  \end{tikzpicture}
-  \caption{Значения функционала $\Omega(\alpha)$}
-\end{figure}
-
-Находя $\alpha$: \input{alpha-val.out}, вычислим решение
-регуляризованной системы \eqref{eq:discrete-reg}. Оно сопоставлено с
-модельным решением $x_0$ на \figref{fig:r1}.
-
-\begin{figure}[htb]
-  \centering
-  \begin{tikzpicture}
-    \begin{axis}
-      \input{model-plot.tex}
-      \input{r1-sol-plot.tex}
-    \end{axis}
-  \end{tikzpicture}
-  \caption{Модельное и регуляризационное решение}
-  \label{fig:r1}
-\end{figure}
-
-Система \eqref{eq:discrete-reg} при найденном значении $\alpha$
-обладает устойчивостью: как продемонстрировано на
-\figref{fig:r1-dist}, добавление к вектору $\vec{\tilde{z}}$ малого
-возмущение уже не приводит к картине, виденной ранее
-(\figref{fig:raw-dist}).
-
-\begin{figure}[htb]
-  \centering
-  \begin{tikzpicture}
-    \begin{axis}
-      \input{r1-sol-plot.tex}
-      \input{r1-sol-dist-plot.tex}
-    \end{axis}
-  \end{tikzpicture}
-  \caption{Стабильность регуляризационного решения $\vec{\bar{x}}(\alpha)$}
-  \label{fig:r1-dist}
-\end{figure}
-
-Рассматривая для той же системы \eqref{eq:discrete-reg} функционал
-\begin{equation}
-  \Phi(\beta) = \norm{B\mul\vec{\bar{x}}(\beta) - \vec{\tilde{z}}},
-\end{equation}
-определим $\beta$: \input{beta-val.out}.
-
-\begin{figure}[htb]
-  \centering
-  \begin{tikzpicture}
-    \begin{axis}
-      \input{u-plot.tex}
-    \end{axis}
-  \end{tikzpicture}
-  \caption{Значения функционала $\Phi(\beta)$}
-\end{figure}
-
-Решения $\vec{\bar{x}}(\alpha)$ и $\vec{\bar{x}}(\beta)$ представлены
-на \figref{fig:r1-r2}.
-
-\begin{figure}[htb]
-  \centering
-  \begin{tikzpicture}
-    \begin{axis}
-      \input{r2-sol-plot.tex}
-      \input{r2-sol-dist-plot.tex}
-    \end{axis}
-  \end{tikzpicture}
-  \caption{Стабильность регуляризационного решения $\vec{\bar{x}}(\beta)$}
-  \label{fig:r2-dist}
-\end{figure}
-
-\begin{figure}[htb]
-  \centering
-  \begin{tikzpicture}[scale=1.5]
-    \begin{axis}
-      \input{r1-sol-plot.tex}
-      \input{r2-sol-plot.tex}
-    \end{axis}
-  \end{tikzpicture}
-  \caption{Сравнение регуляризационных решений}
-  \label{fig:r1-r2}
-\end{figure}
+\input{solution.tex}
 
 \clearpage
 \section{Информация о документе}
@@ -204,6 +80,7 @@ $\vec{\bar{x}}(\alpha)$, зададимся задачей минимизаци�
 Представленная работа выполнена в рамках программы седьмого семестра
 обучения по специальности «Вычислительная математика и математическая
 физика» в МГТУ им. Н. Э. Баумана.
+
 
 Дата компиляции настоящего документа: \today
 \newcommand{\BibEmph}{\name}

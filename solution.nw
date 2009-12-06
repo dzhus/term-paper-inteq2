@@ -10,11 +10,14 @@
   \intl_a^b {e^{-s\tau}x(\tau)\,d\tau} = z(s),\, s\in [a;b]
 \end{equation}
 
-Изучение интегрального уравнения будем проводить по следующей схеме:
+Изучение интегрального уравнения будем проводить по следующему плану:
 <<*>>=
 <<исходные данные>>
 <<модельное решение>>
 <<дискретизация>>
+<<неустойчивость>>
+<<регуляризация>>
+<<запись результатов>>
 @ 
 
 \subsection{Исходные данные}
@@ -37,7 +40,7 @@ function M = M(x)
 endfunction
 @ 
 
-\begin{figure}[!htb]
+\begin{figure}[!h]
   \centering
   \begin{tikzpicture}
     \begin{axis}[
@@ -190,26 +193,72 @@ global x_m = M(tau)';
 z = B * x_m;
 @ 
 
-<<дальнейшие игрища>>=
+
+\subsection{Неустойчивость}
+
+Внесём в правую часть уравнения малое возмущение порядка $10^{-2}$,
+рассмотрев вместо \eqref{eq:discrete} следующую систему:
+\begin{equation}
+  \label{eq:discrete-dist}
+  B\mul\vec{x}=\vec{\tilde{z}}.
+\end{equation}
+
+Решение данной системы $\vec{\tilde{x}}$ (\figref{fig:raw-dist})
+демонстрирует её неусточивость к малым возмущениям.
+
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}
+      \input{raw-dist-sol-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Решение \eqref{eq:discrete} после внесения возмущения}
+  \label{fig:raw-dist}
+\end{figure}
+
+<<неустойчивость>>=
 raw_x = B \ z;
-# Вносим погрешность
 rand("state", 2009)
 global z_d = z + (rand(n, 1) - 0.5) * 0.1;
-# Разбалтывается жуть как
 x_d = B \ z_d;
+@ 
 
-# Изменение правой части должно быть мало
-z - B * x_d;
+\subsection{Регуляризация}
 
-# Регуляризация, часть 1
+Рассмотрим вместо \eqref{eq:discrete-dist} следующую задачу:
+\begin{equation}
+\label{eq:discrete-reg}
+\left(\alpha H + B^TB \right) \mul \vec{x} = B^T\mul \vec{\tilde{z}},
+\end{equation}
+где $H$ — матрица стабилизирующего функционала, а $\alpha$ — параметр
+регуляризации. Далее рассмотрим два метода регуляризации.
+
+<<регуляризация>>=
 function x = stabilized_solution(B, z, H, alpha)
   x = (H * alpha + B' * B) \ (B' * z);
 endfunction
+<<регуляризация по модельному решению>>
+<<регуляризация по невязке>>
+@ 
 
-function c = cnorm(u, v)
-  c = max(abs(u - v));
-endfunction
+Обозначая решение новой системы как $\vec{\bar{x}}(\alpha)$, зададимся
+задачей минимизации функционала
+\begin{equation}
+  \Omega(\alpha) = \norm{\vec{x_0} - \vec{\bar{x}}(\alpha)}.
+\end{equation}
 
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}
+      \input{w-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Значения функционала $\Omega(\alpha)$}
+\end{figure}
+
+<<регуляризация по модельному решению>>=
 function w = w(alpha)
   global B z_d x_m n
   x = stabilized_solution(B, z_d, eye(n), alpha);
@@ -222,11 +271,70 @@ for i=1:length(alphas)
   w_points(i) = w(alphas(i));
 endfor
 
-# Часть 2
+alpha = sqp(1e-2, @w, [], [], 0, 1)
+<<проверка первого решения на устойчивость>>
+@
+
+Находя $\alpha$: \input{alpha-val.out}, вычислим решение
+регуляризованной системы \eqref{eq:discrete-reg}. Оно сопоставлено с
+модельным решением $x_0$ на \figref{fig:r1}.
+
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}
+      \input{model-plot.tex}
+      \input{r1-sol-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Модельное и регуляризационное решение}
+  \label{fig:r1}
+\end{figure}
+
+Система \eqref{eq:discrete-reg} при найденном значении $\alpha$
+обладает устойчивостью: как продемонстрировано на
+\figref{fig:r1-dist}, добавление к вектору $\vec{\tilde{z}}$ малого
+возмущение уже не приводит к картине, виденной ранее
+(\figref{fig:raw-dist}).
+
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}
+      \input{r1-sol-plot.tex}
+      \input{r1-sol-dist-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Стабильность регуляризационного решения $\vec{\bar{x}}(\alpha)$}
+  \label{fig:r1-dist}
+\end{figure}
+
+<<проверка первого решения на устойчивость>>=
+x_r1 = stabilized_solution(B, z_d, eye(n), alpha);
+x_r1_dist = stabilized_solution(B, z_d + (rand(n, 1) - 0.5) * 0.1, eye(n), alpha);
+@ 
+
+Рассматривая для той же системы \eqref{eq:discrete-reg} функционал
+\begin{equation}
+  \Phi(\beta) = \norm{B\mul\vec{\bar{x}}(\beta) - \vec{\tilde{z}}},
+\end{equation}
+определим $\beta$: \input{beta-val.out}.
+
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}
+      \input{u-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Значения функционала $\Phi(\beta)$}
+\end{figure}
+
+<<регуляризация по невязке>>=
 function u = u(alpha)
   global B z_d x_m n
   x = stabilized_solution(B, z_d, eye(n), alpha);
-  u = sum(abs(B*x - z_d));
+  u = max(abs(B*x - z_d));
 endfunction
 
 u_points = zeros(length(alphas),1);
@@ -234,21 +342,44 @@ for i=1:length(alphas)
   u_points(i) = u(alphas(i));
 endfor
 
-
-# минимизируем
-alpha = sqp(1e-2, @w, [], [], 0, 1)
 beta = sqp(1e-2, @u, [], [], alpha / 10, 1)
+<<проверка второго решения на устойчивость>>
+@
 
-# проверяем на устойчивость
-x_r1 = stabilized_solution(B, z_d, eye(n), alpha);
-x_r1_dist = stabilized_solution(B, z_d + (rand(n, 1) - 0.5) * 0.1, eye(n), alpha);
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}
+      \input{r2-sol-plot.tex}
+      \input{r2-sol-dist-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Стабильность регуляризационного решения $\vec{\bar{x}}(\beta)$}
+  \label{fig:r2-dist}
+\end{figure}
 
+<<проверка второго решения на устойчивость>>=
 x_r2 = stabilized_solution(B, z_d, eye(n), beta);
 x_r2_dist = stabilized_solution(B, z_d + (rand(n, 1) - 0.5) * 0.1, eye(n), beta);
+@ 
 
-# заметим, что beta < alpha
 
-# Запись результатов
+Решения $\vec{\bar{x}}(\alpha)$ и $\vec{\bar{x}}(\beta)$ представлены
+на \figref{fig:r1-r2}.
+
+\begin{figure}[htb]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}
+      \input{r1-sol-plot.tex}
+      \input{r2-sol-plot.tex}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Сравнение регуляризационных решений}
+  \label{fig:r1-r2}
+\end{figure}
+
+<<запись результатов>>=
 model_points = [tau; x_m']';
 x_points = [tau; raw_x']';
 x_d_points = [tau; x_d']';
