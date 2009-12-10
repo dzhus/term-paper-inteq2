@@ -221,7 +221,7 @@ $\delta=10^{-2}$, прибава в ней вектор нормально ра�
 
 <<неустойчивость>>=
 raw_x = B \ z;
-delta = 0.01;
+global delta = 0.01;
 global z_d = z + normrnd(0, delta, n, 1);
 z_d - z
 x_d = B \ z_d;
@@ -346,9 +346,9 @@ x_r1_dist = stabilized_solution(B, z_d + normrnd(0, delta, n, 1), eye(n), alpha)
 
 <<регуляризация по невязке>>=
 function u = u(alpha)
-  global B z_d x_m n
+  global B z_d x_m n delta
   x = stabilized_solution(B, z_d, eye(n), alpha);
-  u = max(abs(B*x - z_d));
+  u = abs(sum(abs(B*x - z_d)) - delta * sqrt(n));
 endfunction
 
 u_points = zeros(length(alphas),1);
@@ -377,6 +377,7 @@ x_r2 = stabilized_solution(B, z_d, eye(n), beta);
 x_r2_dist = stabilized_solution(B, z_d + normrnd(0, delta, n, 1), eye(n), beta);
 @ 
 
+\subsection{Выводы}
 
 Решения $\vec{\bar{x}}(\alpha)$ и $\vec{\bar{x}}(\beta)$ представлены
 на \figref{fig:r1-r2}.
@@ -392,6 +393,10 @@ x_r2_dist = stabilized_solution(B, z_d + normrnd(0, delta, n, 1), eye(n), beta);
   \caption{Сравнение регуляризационных решений}
   \label{fig:r1-r2}
 \end{figure}
+
+Поскольку в действительности модельное решение не всегда доступно,
+более универсальным является метод регуляризации по невязке, дающий
+приемлимые результаты.
 
 <<запись результатов>>=
 model_points = [tau; x_m']';
