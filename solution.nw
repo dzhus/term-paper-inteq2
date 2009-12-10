@@ -56,9 +56,19 @@ endfunction
 
 \section{Решение}
 
-\subsection{Приближение полиномами Чебышева}
+\subsection{Приближение полиномами Чебышёва}
 
-Разложим искомую функцию $x(\tau)$ по многочленам Чебышева до $n$-го члена:
+Многочлены Чебышёва $(T_k(\tau)$ на отрезке $[a;b]$ определяются следующим образом:
+\begin{equation}
+  \begin{aligned}
+    T_0(\tau) &= 1\\
+    T_1(\tau) &= \frac{2x-(b+a)}{b-a}\\
+    T_{k+1}(\tau) &= 2 \mul T_1(\tau) \mul T_k(\tau) - T_{k-1}(\tau)\\
+  \end{aligned}
+\end{equation}
+
+Разложим искомую функцию $x(\tau)$ по многочленам Чебышёва до $n$-го
+члена:
 \begin{equation}
   \label{eq:cheb-sum}
   x_A(\tau) = \sum_{k=1}^n{c_k T_k(\tau)}.
