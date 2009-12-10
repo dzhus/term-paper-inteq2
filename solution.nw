@@ -253,7 +253,7 @@ endfunction
 Обозначая решение новой системы как $\vec{\bar{x}}(\alpha)$, зададимся
 задачей минимизации функционала
 \begin{equation}
-  \Omega(\alpha) = \norm{\vec{x_0} - \vec{\bar{x}}(\alpha)}.
+  w(\alpha) = \norm{\vec{x_0} - \vec{\bar{x}}(\alpha)}.
 \end{equation}
 
 \begin{figure}[htb]
@@ -263,7 +263,7 @@ endfunction
       \input{w-plot.tex}
     \end{axis}
   \end{tikzpicture}
-  \caption{Значения функционала $\Omega(\alpha)$}
+  \caption{Значения функционала $w(\alpha)$}
 \end{figure}
 
 <<регуляризация по модельному решению>>=
@@ -323,9 +323,14 @@ x_r1_dist = stabilized_solution(B, z_d + normrnd(0, delta, n, 1), eye(n), alpha)
 @ 
 
 \subsubsection{Регуляризация по невязке}
-Рассматривая для той же системы \eqref{eq:discrete-reg} функционал
+Рассматрим для той же системы \eqref{eq:discrete-reg} невязку в правой
+части:
 \begin{equation}
-  \Phi(\beta) = \norm{B\mul\vec{\bar{x}}(\beta) - \vec{\tilde{z}}},
+  \Delta = \norm{B\mul\vec{\bar{x}}(\beta) - \vec{\tilde{z}}},
+\end{equation}
+минимизируем функционал $\Phi(\beta)$, определённый следующим образом:
+\begin{equation}
+  u(\beta) = \abs{\Delta - \delta\mul\sqrt{n}}
 \end{equation}
 определим $\beta$: \input{beta-val.out}.
 
@@ -336,7 +341,7 @@ x_r1_dist = stabilized_solution(B, z_d + normrnd(0, delta, n, 1), eye(n), alpha)
       \input{u-plot.tex}
     \end{axis}
   \end{tikzpicture}
-  \caption{Значения функционала $\Phi(\beta)$}
+  \caption{Значения функционала $u(\beta)$}
 \end{figure}
 
 <<регуляризация по невязке>>=
