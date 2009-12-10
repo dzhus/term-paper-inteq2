@@ -12,7 +12,9 @@ include ${DOCNAME}-deps.mk
 
 .PRECIOUS: %.out
 
-${DOCNAME}-deps.mk: ${DOCNAME}.tex solution.tex
+doc: ${DOCNAME}.pdf
+
+${DOCNAME}-deps.mk: ${DOCNAME}.tex
 	texdepend -o $@ -print=if $<
 
 ${DOCNAME}.aux: ${DOCNAME}.tex ${DOCNAME}.bib ${INCLUDES}
@@ -23,7 +25,7 @@ ${DOCNAME}.pdf: ${DOCNAME}.aux
 	${PDFLATEX} ${DOCNAME}
 	${PDFLATEX} ${DOCNAME}
 
-doc: ${DOCNAME}.pdf
+${DOCNAME}.tex: solution.tex
 
 solution.tex: solution.nw
 	${NOWEAVE} $< > $@
@@ -32,7 +34,7 @@ solution.oct: solution.nw
 	${NOTANGLE} $< > $@
 	${OCTAVE} $@
 
-%.out: solution.oct
+%.out: solution.oct ;
 
 %-plot.tex: %.out
 	echo "\addplot file{$<};" > $@
