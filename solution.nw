@@ -196,8 +196,10 @@ z = B * x_m;
 
 \subsection{Неустойчивость}
 
-Внесём в правую часть уравнения малое возмущение порядка $10^{-2}$,
-рассмотрев вместо \eqref{eq:discrete} следующую систему:
+Внесём в правую часть уравнения малое возмущение порядка
+$\delta=10^{-2}$, прибава в ней вектор нормально распределённых
+случайных величин, и рассмотрим вместо \eqref{eq:discrete} полученную
+систему:
 \begin{equation}
   \label{eq:discrete-dist}
   B\mul\vec{x}=\vec{\tilde{z}}.
@@ -219,10 +221,11 @@ z = B * x_m;
 
 <<неустойчивость>>=
 raw_x = B \ z;
-rand("state", 2009)
-global z_d = z + (rand(n, 1) - 0.5) * 0.1;
+delta = 0.01;
+global z_d = z + normrnd(0, delta, n, 1);
+z_d - z
 x_d = B \ z_d;
-@ 
+@
 
 \subsection{Регуляризация}
 
@@ -316,7 +319,7 @@ alpha = sqp(1e-2, @w, [], [], 0, 1)
 
 <<проверка первого решения на устойчивость>>=
 x_r1 = stabilized_solution(B, z_d, eye(n), alpha);
-x_r1_dist = stabilized_solution(B, z_d + (rand(n, 1) - 0.5) * 0.1, eye(n), alpha);
+x_r1_dist = stabilized_solution(B, z_d + normrnd(0, delta, n, 1), eye(n), alpha);
 @ 
 
 \subsubsection{Регуляризация по невязке}
@@ -366,7 +369,7 @@ beta = sqp(1e-2, @u, [], [], alpha / 10, 1)
 
 <<проверка второго решения на устойчивость>>=
 x_r2 = stabilized_solution(B, z_d, eye(n), beta);
-x_r2_dist = stabilized_solution(B, z_d + (rand(n, 1) - 0.5) * 0.1, eye(n), beta);
+x_r2_dist = stabilized_solution(B, z_d + normrnd(0, delta, n, 1), eye(n), beta);
 @ 
 
 
