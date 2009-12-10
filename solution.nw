@@ -226,13 +226,16 @@ x_d = B \ z_d;
 
 \subsection{Регуляризация}
 
-Рассмотрим вместо \eqref{eq:discrete-dist} следующую задачу:
+Метод регуляризации заключается в замене исходной системы
+\eqref{eq:discrete-dist} на следующую:
 \begin{equation}
 \label{eq:discrete-reg}
 \left(\alpha H + B^TB \right) \mul \vec{x} = B^T\mul \vec{\tilde{z}},
 \end{equation}
 где $H$ — матрица стабилизирующего функционала, а $\alpha$ — параметр
-регуляризации. Далее рассмотрим два метода регуляризации.
+регуляризации. Предлагается определить $\alpha$ таким образом, чтобы
+новая система была как можно адекватнее исходной и при этом была
+устойчивой. Далее рассмотрим два метода регуляризации.
 
 <<регуляризация>>=
 function x = stabilized_solution(B, z, H, alpha)
@@ -241,6 +244,8 @@ endfunction
 <<регуляризация по модельному решению>>
 <<регуляризация по невязке>>
 @ 
+
+\subsubsection{Использование модельного решения}
 
 Обозначая решение новой системы как $\vec{\bar{x}}(\alpha)$, зададимся
 задачей минимизации функционала
@@ -314,6 +319,7 @@ x_r1 = stabilized_solution(B, z_d, eye(n), alpha);
 x_r1_dist = stabilized_solution(B, z_d + (rand(n, 1) - 0.5) * 0.1, eye(n), alpha);
 @ 
 
+\subsubsection{Регуляризация по невязке}
 Рассматривая для той же системы \eqref{eq:discrete-reg} функционал
 \begin{equation}
   \Phi(\beta) = \norm{B\mul\vec{\bar{x}}(\beta) - \vec{\tilde{z}}},
