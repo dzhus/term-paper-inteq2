@@ -284,7 +284,7 @@ function w = w(alpha)
   w = sum(abs(x - x_m));
 endfunction
 
-alphas = 1e-8:5e-7:1e-5;
+alphas = 1e-8:20e-8:5e-6;
 w_points = zeros(length(alphas),1);
 for i=1:length(alphas)
   w_points(i) = w(alphas(i));
@@ -337,13 +337,18 @@ x_r1_dist = stabilized_solution(B, z_d + normrnd(0, delta, n, 1), eye(n), alpha)
 Рассмотрим для той же системы \eqref{eq:discrete-reg} невязку в правой
 части:
 \begin{equation}
+  \label{eq:residual}
   \Delta = \norm{B\mul\vec{\bar{x}}(\beta) - \vec{\tilde{z}}},
 \end{equation}
 минимизируем функционал $\Phi(\beta)$, определённый следующим образом:
 \begin{equation}
-  u(\beta) = \abs{\Delta - \delta\mul\sqrt{n}}
+  u(\beta) = \abs{\Delta - \delta\mul\sqrt{n}}.
 \end{equation}
-определим $\beta$: \input{beta-val.out}.
+В данном случае мы выбираем параметр регуляризации таким образом,
+чтобы значение невязки \eqref{eq:residual} было как можно ближе к
+оптимальному значению $\delta\sqrt{n}$, вычисленному с учётом
+нормальности распределения компонента внесённого в систему вектора
+случайных величин. Определим $\beta$: \input{beta-val.out}.
 
 \begin{figure}[htb]
   \centering
