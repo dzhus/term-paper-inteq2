@@ -207,7 +207,7 @@ z = B * x_m;
 \subsection{Неустойчивость}
 
 Внесём в правую часть уравнения малое возмущение порядка
-$\delta=10^{-2}$, прибава в ней вектор нормально распределённых
+$\delta=10^{-2}$, прибавив к ней вектор нормально распределённых
 случайных величин, и рассмотрим вместо \eqref{eq:discrete} полученную
 систему:
 \begin{equation}
@@ -334,7 +334,7 @@ x_r1_dist = stabilized_solution(B, z_d + normrnd(0, delta, n, 1), eye(n), alpha)
 @ 
 
 \subsubsection{Регуляризация по невязке}
-Рассматрим для той же системы \eqref{eq:discrete-reg} невязку в правой
+Рассмотрим для той же системы \eqref{eq:discrete-reg} невязку в правой
 части:
 \begin{equation}
   \Delta = \norm{B\mul\vec{\bar{x}}(\beta) - \vec{\tilde{z}}},
